@@ -20,6 +20,10 @@ general:
     subPaths:
       tv: media/tv
       movies: media/movies
+      music: media/music
+      audiobooks: media/audiobooks
+      pictures: media/pictures
+      homevideos: media/homevideos
       downloads: downloads
       transmission: transmission
       sabnzbd: sabnzbd
@@ -122,7 +126,7 @@ jackett:
 transmission:
   enabled: true
   container:
-    image: docker.io/linuxserver/transmission
+    image: haugene/transmission-openvpn
     nodeSelector: {}
     port:
       utp: 9091
@@ -153,6 +157,12 @@ transmission:
       enabled: false
       username: ""
       password: ""
+    openvpn:
+      provider: PRIVADO # https://haugene.github.io/docker-transmission-openvpn/supported-providers/
+      config: changeme
+      username: user
+      password: pass
+      localNetwork: 192.168.0.0/16
   resources: {}
   volume: {}
   #  name: pvc-transmission-config
