@@ -107,13 +107,24 @@ spec:
   selector:
     matchLabels:
       {{- include "k8s-mediaserver.selectorLabels" . | nindent 6 }}
+      vpn: vpn-id
   template:
     metadata:
       labels:
         {{- include "k8s-mediaserver.selectorLabels" . | nindent 8 }}
         app: transmission
+        vpn: vpn-id
     spec:
       initContainers:
+        - name: vpn-route-init
+          image: busybox
+          command: ['/bin/sh', '-c', 'cp /vpn/route-override.sh /tmp/route/route-override.sh; chown root:root /tmp/route/route-override.sh; chmod o+x /tmp/route/route-override.sh;']
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp/route
+            - name: route-script
+              mountPath: /vpn/route-override.sh
+              subPath: route-override.sh
         - name: config-transmission
           image: docker.io/ubuntu:groovy
           command: ["/init-transmission/init-transmission.sh"]
@@ -169,11 +180,29 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-        - image: dperson/openvpn-client
-          name: openvpn-client
+        - name: vpn
+          image: dperson/openvpn-client
+          command: ["/bin/sh","-c"]
+          args: ["openvpn --config 'vpn/client.ovpn' --auth-user-pass 'vpn/auth.txt' --script-security 3 --route-up /tmp/route/route-override.sh;"]
+          stdin: true
+          tty: true
           securityContext:
-            capabilities: {add: ['NET_ADMIN']}
             privileged: true
+            capabilities:
+              add:
+                - NET_ADMIN
+          env:
+            - name: TZ
+              value: "Turkey"
+          volumeMounts:
+            - name: vpn-config
+              mountPath: /vpn/client.ovpn
+              subPath: client.ovpn
+            - name: vpn-auth
+              mountPath: /vpn/auth.txt
+              subPath: auth.txt
+            - name: tmp
+              mountPath: /tmp/route
       dnsPolicy: 'None'
       dnsConfig:
         nameservers: ['1.1.1.1', '1.0.0.1']
@@ -195,6 +224,26 @@ spec:
           configMap:
             defaultMode: 493
             name: init-transmission-cm
+                - name: vpn-config
+          secret:
+            secretName: vpn-config
+            items:
+                - key: client.ovpn
+                  path: client.ovpn
+        - name: vpn-auth
+          secret:
+            secretName: vpn-auth
+            items:
+                - key: auth.txt
+                  path: auth.txt
+        - name: route-script
+          configMap:
+            name: route-script
+            items:
+              - key: route-override.sh
+                path: route-override.sh
+        - name: tmp
+          emptyDir: {}
       {{- with .Values.general.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
