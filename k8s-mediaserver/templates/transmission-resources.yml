@@ -116,94 +116,94 @@ spec:
         vpn: vpn-id
     spec:
       initContainers:
-        - name: vpn-route-init
-          image: busybox
-          command: ["/bin/sh"]
-          args: ["-c", "cp /vpn/route-override.sh /tmp/route/route-override.sh; chown root:root /tmp/route/route-override.sh; chmod o+x /tmp/route/route-override.sh;"]
-          volumeMounts:
-            - name: tmp
-              mountPath: /tmp/route
-            - name: route-script
-              mountPath: /vpn/route-override.sh
-              subPath: route-override.sh
-        - name: config-transmission
-          image: docker.io/ubuntu:groovy
-          command: ["/init-transmission/init-transmission.sh"]
-          volumeMounts:
-            - mountPath: /init-transmission
-              name: init-files-transmission
-          {{ if .Values.transmission.volume }}
-            - name: {{ .Values.transmission.volume.name }}
-              mountPath: /transmission-config
-          {{ else }}
-            - name: mediaserver-volume
-              mountPath: "/transmission-config"
-              subPath: "{{ .Values.general.storage.subPaths.config }}/transmission"
-          {{ end }}
-          securityContext:
-            runAsUser: {{ .Values.general.puid }}
-            runAsGroup: {{ .Values.general.pgid }}
+      - name: vpn-route-init
+        image: busybox
+        command: ["/bin/sh"]
+        args: ["-c", "cp /vpn/route-override.sh /tmp/route/route-override.sh; chown root:root /tmp/route/route-override.sh; chmod o+x /tmp/route/route-override.sh;"]
+        volumeMounts:
+          - name: tmp
+            mountPath: /tmp/route
+          - name: route-script
+            mountPath: /vpn/route-override.sh
+            subPath: route-override.sh
+      - name: config-transmission
+        image: docker.io/ubuntu:groovy
+        command: ["/init-transmission/init-transmission.sh"]
+        volumeMounts:
+          - mountPath: /init-transmission
+            name: init-files-transmission
+        {{ if .Values.transmission.volume }}
+          - name: {{ .Values.transmission.volume.name }}
+            mountPath: /transmission-config
+        {{ else }}
+          - name: mediaserver-volume
+            mountPath: "/transmission-config"
+            subPath: "{{ .Values.general.storage.subPaths.config }}/transmission"
+        {{ end }}
+        securityContext:
+          runAsUser: {{ .Values.general.puid }}
+          runAsGroup: {{ .Values.general.pgid }}
       containers:
-        - name: {{ .Chart.Name }}
-          envFrom:
-            - configMapRef:
-                name: transmission-config
-          image: "{{ .Values.transmission.container.image }}:{{ .Values.transmission.container.tag | default .Values.general.image_tag }}"
-          imagePullPolicy: Always
-          readinessProbe:
-            tcpSocket:
-              port: {{ .Values.transmission.container.port.utp }}
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          ports:
-            - name: trans-port
-              containerPort: {{ .Values.transmission.container.port.utp }}
-              protocol: TCP
-            - name: trans-peer-tcp
-              containerPort: {{ .Values.transmission.container.port.peer }}
-              protocol: TCP
-            - name: trans-peer-udp
-              containerPort: {{ .Values.transmission.container.port.peer }}
-              protocol: UDP
-          volumeMounts:
-          {{ if .Values.transmission.volume }}
-            - name: {{ .Values.transmission.volume.name }}
-              mountPath: /config
-          {{ else }}
-            - name: mediaserver-volume
-              mountPath: "/config"
-              subPath: "{{ .Values.general.storage.subPaths.config }}/transmission"
-          {{ end }}
-            - name: mediaserver-volume
-              mountPath: "/downloads"
-              subPath: "{{ .Values.general.storage.subPaths.downloads }}"
-          {{- with .Values.transmission.resources }}
-          resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-        - name: vpn
-          image: dperson/openvpn-client
-          command: ["/bin/sh","-c"]
-          args: ["openvpn --config 'vpn/client.ovpn' --auth-user-pass 'vpn/auth.txt' --script-security 3 --route-up /tmp/route/route-override.sh;"]
-          stdin: true
-          tty: true
-          securityContext:
-            privileged: true
-            capabilities:
-              add:
-                - NET_ADMIN
-          env:
-            - name: TZ
-              value: "Turkey"
-          volumeMounts:
-            - name: vpn-config
-              mountPath: /vpn/client.ovpn
-              subPath: client.ovpn
-            - name: vpn-auth
-              mountPath: /vpn/auth.txt
-              subPath: auth.txt
-            - name: tmp
-              mountPath: /tmp/route
+      - name: {{ .Chart.Name }}
+        envFrom:
+          - configMapRef:
+              name: transmission-config
+        image: "{{ .Values.transmission.container.image }}:{{ .Values.transmission.container.tag | default .Values.general.image_tag }}"
+        imagePullPolicy: Always
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.transmission.container.port.utp }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        ports:
+          - name: trans-port
+            containerPort: {{ .Values.transmission.container.port.utp }}
+            protocol: TCP
+          - name: trans-peer-tcp
+            containerPort: {{ .Values.transmission.container.port.peer }}
+            protocol: TCP
+          - name: trans-peer-udp
+            containerPort: {{ .Values.transmission.container.port.peer }}
+            protocol: UDP
+        volumeMounts:
+        {{ if .Values.transmission.volume }}
+          - name: {{ .Values.transmission.volume.name }}
+            mountPath: /config
+        {{ else }}
+          - name: mediaserver-volume
+            mountPath: "/config"
+            subPath: "{{ .Values.general.storage.subPaths.config }}/transmission"
+        {{ end }}
+          - name: mediaserver-volume
+            mountPath: "/downloads"
+            subPath: "{{ .Values.general.storage.subPaths.downloads }}"
+        {{- with .Values.transmission.resources }}
+        resources:
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+      - name: vpn
+        image: dperson/openvpn-client
+        command: ["/bin/sh","-c"]
+        args: ["openvpn --config 'vpn/client.ovpn' --auth-user-pass 'vpn/auth.txt' --script-security 3 --route-up /tmp/route/route-override.sh;"]
+        stdin: true
+        tty: true
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - NET_ADMIN
+        env:
+        - name: TZ
+          value: "MST"
+        volumeMounts:
+        - name: vpn-config
+          mountPath: /vpn/client.ovpn
+          subPath: client.ovpn
+        - name: vpn-auth
+          mountPath: /vpn/auth.txt
+          subPath: auth.txt
+        - name: tmp
+          mountPath: /tmp/route
       dnsPolicy: 'None'
       dnsConfig:
         nameservers: ['1.1.1.1', '1.0.0.1']
