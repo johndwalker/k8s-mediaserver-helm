@@ -126,7 +126,7 @@ jackett:
 transmission:
   enabled: true
   container:
-    image: haugene/transmission-openvpn
+    image: docker.io/linuxserver/transmission
     nodeSelector: {}
     port:
       utp: 9091
