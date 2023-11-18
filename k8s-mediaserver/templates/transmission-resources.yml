@@ -169,15 +169,14 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-        - name: openvpn-client
-          image: dperson/openvpn-client
-            name: openvpn-client
-            securityContext:
-              capabilities: {add: ['NET_ADMIN']}
-              privileged: true
-          dnsPolicy: 'None'
-          dnsConfig:
-            nameservers: ['1.1.1.1', '1.0.0.1']
+        - image: dperson/openvpn-client
+          name: openvpn-client
+          securityContext:
+            capabilities: {add: ['NET_ADMIN']}
+            privileged: true
+      dnsPolicy: 'None'
+      dnsConfig:
+        nameservers: ['1.1.1.1', '1.0.0.1']
       volumes:
         {{ if not .Values.general.storage.customVolume }}
         - name: mediaserver-volume
