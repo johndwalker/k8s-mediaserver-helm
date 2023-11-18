@@ -119,10 +119,10 @@ spec:
         command: ['/bin/sh', '-c', 'cp /vpn/route-override.sh /tmp/route/route-override.sh; chown root:root /tmp/route/route-override.sh; chmod o+x /tmp/route/route-override.sh;']
         volumeMounts:
         - name: tmp
-          mountPath: /tmp/route
+            mountPath: /tmp/route
         - name: route-script
-          mountPath: /vpn/route-override.sh
-          subPath: route-override.sh
+            mountPath: /vpn/route-override.sh
+            subPath: route-override.sh
       - name: config-transmission
         image: docker.io/ubuntu:groovy
         command: ["/init-transmission/init-transmission.sh"]
