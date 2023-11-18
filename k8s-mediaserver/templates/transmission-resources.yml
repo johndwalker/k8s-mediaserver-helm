@@ -9,7 +9,7 @@ data:
     echo "### Initializing config ###"
     if [ ! -f /transmission-config/settings.json ]; then
       cp -n /init-transmission/settings.json /transmission-config/settings.json
-      echo "### No configuration found, intialized with default settings ###"
+      echo "### No configuration found, initialized with default settings ###"
     fi
   settings.json: |
     {
@@ -115,7 +115,7 @@ spec:
     spec:
       initContainers:
       - name: vpn-route-init
-        image: busybox
+        image: busybox:latest
         command: ["/bin/sh"]
         args: ["-c", "cp /vpn/route-override.sh /tmp/route/route-override.sh; chown root:root /tmp/route/route-override.sh; chmod o+x /tmp/route/route-override.sh;"]
         volumeMounts:
