@@ -107,13 +107,11 @@ spec:
   selector:
     matchLabels:
       {{- include "k8s-mediaserver.selectorLabels" . | nindent 6 }}
-      vpn: vpn-id
   template:
     metadata:
       labels:
         {{- include "k8s-mediaserver.selectorLabels" . | nindent 8 }}
         app: transmission
-        vpn: vpn-id
     spec:
       initContainers:
       - name: vpn-route-init
@@ -225,24 +223,24 @@ spec:
         configMap:
           defaultMode: 493
           name: init-transmission-cm
-              - name: vpn-config
+          - name: vpn-config
         secret:
           secretName: vpn-config
           items:
-              - key: client.ovpn
-                path: client.ovpn
+          - key: client.ovpn
+            path: client.ovpn
       - name: vpn-auth
         secret:
           secretName: vpn-auth
           items:
-              - key: auth.txt
-                path: auth.txt
+          - key: auth.txt
+            path: auth.txt
       - name: route-script
         configMap:
           name: route-script
           items:
-            - key: route-override.sh
-              path: route-override.sh
+          - key: route-override.sh
+            path: route-override.sh
       - name: tmp
         emptyDir: {}
       {{- with .Values.general.nodeSelector }}
@@ -279,12 +277,12 @@ metadata:
 spec:
   type: {{ .Values.transmission.service.peer.type }}
   ports:
-    - port: {{ .Values.transmission.service.peer.port }}
-      targetPort: {{ .Values.transmission.container.port.peer }}
-      protocol: TCP
-      name: trans-peer-tcp
+  - port: {{ .Values.transmission.service.peer.port }}
+    targetPort: {{ .Values.transmission.container.port.peer }}
+    protocol: TCP
+    name: trans-peer-tcp
 {{ if eq .Values.transmission.service.peer.type "NodePort" }}
-      nodePort: {{ .Values.transmission.service.peer.nodePort }}
+    nodePort: {{ .Values.transmission.service.peer.nodePort }}
 {{ end }}
   selector:
     app: transmission
@@ -298,12 +296,12 @@ metadata:
 spec:
   type: {{ .Values.transmission.service.peer.type }}
   ports:
-    - port: {{ .Values.transmission.service.peer.port }}
-      targetPort: {{ .Values.transmission.container.port.peer }}
-      protocol: UDP
-      name: trans-peer-udp
+  - port: {{ .Values.transmission.service.peer.port }}
+    targetPort: {{ .Values.transmission.container.port.peer }}
+    protocol: UDP
+    name: trans-peer-udp
 {{ if eq .Values.transmission.service.peer.type "NodePort" }}
-      nodePort: {{ .Values.transmission.service.peer.nodePortUDP }}
+    nodePort: {{ .Values.transmission.service.peer.nodePortUDP }}
 {{ end }}
   selector:
     app: transmission
@@ -318,10 +316,10 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-    - port: {{ .Values.transmission.service.port }}
-      targetPort: {{ .Values.transmission.container.port }}
-      protocol: TCP
-      name: trans-port
+  - port: {{ .Values.transmission.service.port }}
+    targetPort: {{ .Values.transmission.container.port }}
+    protocol: TCP
+    name: trans-port
   selector:
     app: transmission
 ---
@@ -336,10 +334,10 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-    - port: {{ .Values.transmission.service.peer.port }}
-      targetPort: {{ .Values.transmission.container.port.peer }}
-      protocol: TCP
-      name: trans-peer-tcp
+  - port: {{ .Values.transmission.service.peer.port }}
+    targetPort: {{ .Values.transmission.container.port.peer }}
+    protocol: TCP
+    name: trans-peer-tcp
   selector:
     app: transmission
 ---
@@ -352,10 +350,10 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-    - port: {{ .Values.transmission.service.peer.port }}
-      targetPort: {{ .Values.transmission.container.port.peer }}
-      protocol: UDP
-      name: trans-peer-udp
+  - port: {{ .Values.transmission.service.peer.port }}
+    targetPort: {{ .Values.transmission.container.port.peer }}
+    protocol: UDP
+    name: trans-peer-udp
   selector:
     app: transmission
 {{ end }}
@@ -375,21 +373,21 @@ metadata:
 spec:
 {{- if .Values.transmission.ingress.tls.enabled }}
   tls:
-    - hosts:
-        - {{ .Values.general.ingress_host | quote }}
-      secretName: {{ .Values.transmission.ingress.tls.secretName }}
+  - hosts:
+    - {{ .Values.general.ingress_host | quote }}
+  secretName: {{ .Values.transmission.ingress.tls.secretName }}
 {{ end }}
   ingressClassName: {{ .Values.general.ingress.ingressClassName }}
   rules:
-    - host: {{ .Values.general.ingress_host | quote }}
-      http:
-        paths:
-          - path: {{ .Values.transmission.ingress.path }}
-            pathType: Prefix
-            backend:
-              service:
-                name: transmission
-                port:
-                  number: {{ .Values.transmission.service.utp.port }}
+  - host: {{ .Values.general.ingress_host | quote }}
+    http:
+      paths:
+      - path: {{ .Values.transmission.ingress.path }}
+        pathType: Prefix
+        backend:
+          service:
+            name: transmission
+            port:
+              number: {{ .Values.transmission.service.utp.port }}
 {{ end }}
 {{ end }}
